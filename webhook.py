@@ -18,8 +18,10 @@ class EventHandlers:
         Handle github events. Shouldn't block or you would get a timeout
         :argument data - decoded json with payload
     """
+    def __init__(self, request):
+        self.request = request
     def push(self, data):
-        os.system('(cd ~/map && git pull && supervisorctl restart map) & disown')
+        os.system('(cd ~/project && git pull && supervisorctl restart project) & disown')
         return 'Started deploy'
     def ping(self, data):
         print('pong')
@@ -48,7 +50,7 @@ class Server(BaseHTTPRequestHandler):
         guid = self.headers.get('X-GitHub-Delivery', '')
         event = self.headers.get('X-GitHub-Event', 'unknown')
         self.log_message('Got %s event from github %s' % (event, guid))
-        handlers = EventHandlers()
+        handlers = EventHandlers(self)
         cmd = getattr(handlers, event)
         if cmd:
             message = cmd(params)
